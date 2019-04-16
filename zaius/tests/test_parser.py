@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""Unit tests for SQL parser
+
+This verifies the SQL parser accepts required input and produces
+the data structure expected by the zaius export api.
+"""
+
 import unittest
 import datetime
 
@@ -6,177 +13,222 @@ from zaius.export.parser import QUERY_PARSER
 
 
 class TestParser(unittest.TestCase):
-    
+    """Parser tests"""
+
     def test_queries_parse(self):
+        #pylint: disable=C0330
+
+        """Verify that valid queries parse and invalid queries
+        do not parse"""
+
         # simplest valid query
-        self.assertValid("""
+        self.assert_valid(
+            """
             select ts
             from events
-        """)
-        
+        """
+        )
+
         # field names can be nested
-        self.assertValid("""
+        self.assert_valid(
+            """
             select customer.name
             from events
-        """)
-        
+        """
+        )
+
         # multiple fields are allowed
-        self.assertValid("""
+        self.assert_valid(
+            """
             select user_id, customer.name
             from events
-        """)
-        
+        """
+        )
+
         # results can be ordered
-        self.assertValid("""
+        self.assert_valid(
+            """
             select user_id
             from events
             order by ts
-        """)
-        
+        """
+        )
+
         # order can be controlled
-        self.assertValid("""
+        self.assert_valid(
+            """
             select user_id
             from events
             order by ts desc
-        """)
-        
+        """
+        )
+
         # results can be filtered
-        self.assertValid("""
+        today_s = datetime.date.today().strftime("%s")
+        self.assert_valid(
+            """
             select user_id
             from events
             where ts > {}
-        """.format(datetime.date.today().strftime('%s')))
-        
+        """.format(
+                today_s
+            )
+        )
+
         # filters can be complex
-        self.assertValid("""
+        self.assert_valid(
+            """
             select user_id
             from events
-            where 
+            where
                 ts > {}
                 and event_type = 'order'
                 and action = 'purchase'
-        """.format(datetime.date.today().strftime('%s')))
-        
+        """.format(
+                today_s
+            )
+        )
+
         # invalid queries
-        
+
         # fields must be explicit
-        self.assertInvalid("""
+        self.assert_invalid(
+            """
             select *
             from events
-        """)
-        
+        """
+        )
+
         # only one table in the from clause
-        self.assertInvalid("""
+        self.assert_invalid(
+            """
             select user_id
             from events, customers
-        """)
-        
+        """
+        )
+
         # query keywords can only appear once
-        self.assertInvalid("""
+        self.assert_invalid(
+            """
             select user_id
             select customer.name
             from events
-        """)
-        
+        """
+        )
+
         # something must be selected
-        self.assertInvalid("""
+        self.assert_invalid(
+            """
             select
             from events
-        """)
+        """
+        )
 
     def test_parse_output(self):
+        """Verify that the output of the parser represents the
+        contents of the string that was parsed."""
+
         # sorts and filters only appear when used in the query
-        result = self.assertValid("""
+        result = self.assert_valid(
+            """
             select user_id
             from events
-        """)
-        self.assertNotIn('sorts', result['select'])
-        self.assertNotIn('filter', result['select'])
-        
-        result = self.assertValid("""
+        """
+        )
+        self.assertNotIn("sorts", result["select"])
+        self.assertNotIn("filter", result["select"])
+
+        result = self.assert_valid(
+            """
             select user_id
             from events
             order by ts
-        """)
-        self.assertIn('sorts', result['select'])
-        self.assertNotIn('filter', result['select'])
-        
-        result = self.assertValid("""
+        """
+        )
+        self.assertIn("sorts", result["select"])
+        self.assertNotIn("filter", result["select"])
+
+        result = self.assert_valid(
+            """
             select user_id
             from events
             where ts > 0
-        """)
-        self.assertNotIn('sorts', result['select'])
-        self.assertIn('filter', result['select'])
-        
-        # trivial filters work
-        self.assertMatch('ts > 0', {'ts': 10})
-        self.assertNoMatch('ts > 0', {'ts': -10})
-        
-        # compound filters work
-        self.assertMatchLike(
-            'ts > 0 and ts < 10',
-            [{'ts': 0}, {'ts': 1}, {'ts': 9}, {'ts': 10}],
-            [False, True, True, False]
+        """
         )
-        
-        self.assertMatchLike(
+        self.assertNotIn("sorts", result["select"])
+        self.assertIn("filter", result["select"])
+
+        # trivial filters work
+        self.assert_match_like("ts > 0", [{"ts": 10}, {"ts": -10}], [True, False])
+
+        # compound filters work
+        self.assert_match_like(
+            "ts > 0 and ts < 10",
+            [{"ts": 0}, {"ts": 1}, {"ts": 9}, {"ts": 10}],
+            [False, True, True, False],
+        )
+
+        self.assert_match_like(
             "ts > 0 and ts < 10 and color = 'blue'",
             [
-                {'ts': 1, 'color': 'red'},
-                {'ts': 3, 'color': 'blue'},
-                {'ts': 5, 'color': 'blue'},
-                {'ts': 10, 'color': 'blue'}
+                {"ts": 1, "color": "red"},
+                {"ts": 3, "color": "blue"},
+                {"ts": 5, "color": "blue"},
+                {"ts": 10, "color": "blue"},
             ],
-            [False, True, True, False]
+            [False, True, True, False],
         )
-        
-    def assertValid(self, stmt):
+
+    # pylint: disable=R0201
+    def assert_valid(self, stmt):
+        """Ensure that a query is parseable"""
+
         return QUERY_PARSER.parse(stmt)
-    
-    def assertInvalid(self, stmt):
+
+    def assert_invalid(self, stmt):
+        """Ensure that a query is invalid"""
+
         with self.assertRaises(parsy.ParseError):
             QUERY_PARSER.parse(stmt)
-    
-    def assertMatch(self, stmt, row):
-        self.assertTrue(self.compileStatement(stmt)(row))
-    
-    def assertMatchLike(self, stmt, rows, target):
-        fn = self.compileStatement(stmt)
-        result = list(map(fn, rows))
+
+    def assert_match_like(self, stmt, rows, target):
+        """Ensure that rows match or do not match the filter
+        defined by stmt according to target"""
+
+        filter_fn = self._compile_statement(stmt)
+        result = list(map(filter_fn, rows))
         self.assertEqual(result, target)
-    
-    def assertMatchAll(self, stmt, rows):
-        return self.assertMatchLike(stmt, rows, [True]*len(rows))
-    
-    def assertNoMatch(self, stmt, row):
-        self.assertFalse(self.compileStatement(stmt)(row))
-    
-    def compileStatement(self, stmt):
-        parsed = self.assertValid("select fake from fake where " + stmt)
-        return self.compileFilter(parsed['select']['filter'])
-    
-    def compileFilter(self, filter_struct):
-        if 'field' in filter_struct:
-            return self.compileFilterTerm(filter_struct)
-        elif 'and' in filter_struct:
-            parts = list([self.compileFilter(part) for part in filter_struct['and']])
+
+    def assert_match_all(self, stmt, rows):
+        """Ensure that all rows match the filter defined by stmt"""
+
+        return self.assert_match_like(stmt, rows, [True] * len(rows))
+
+    def _compile_statement(self, stmt):
+        parsed = self.assert_valid("select fake from fake where " + stmt)
+        return self._compile_filter(parsed["select"]["filter"])
+
+    # pylint: disable=R0201
+    def _compile_filter(self, filter_struct):
+        if "field" in filter_struct:
+            return self._compile_filter_term(filter_struct)
+        if "and" in filter_struct:
+            parts = list([self._compile_filter(part) for part in filter_struct["and"]])
             return lambda row: all(map(lambda p: p(row), parts))
-        elif 'or' in filter_struct:
-            parts = list([self.compileFilter(part) for part in filter_struct['and']])
+        if "or" in filter_struct:
+            parts = list([self._compile_filter(part) for part in filter_struct["and"]])
             return lambda row: any(map(lambda p: p(row), parts))
-        else:
-            raise ValueError('cannot compile {}'.format(filter_struct))
-    
-    def compileFilterTerm(self, filter_struct):
-        field = filter_struct['field']
-        value = filter_struct['value']
-        
+        raise ValueError("cannot compile {}".format(filter_struct))
+
+    def _compile_filter_term(self, filter_struct):
+        field = filter_struct["field"]
+        value = filter_struct["value"]
+
         return {
-            '=': lambda row: row[field] == value,
-            '>': lambda row: row[field] > value,
-            '>=': lambda row: row[field] >= value,
-            '<': lambda row: row[field] < value,
-            '<=': lambda row: row[field] <= value,
-            '!=': lambda row: row[field] != value,
-        }[filter_struct['operator']]
+            "=": lambda row: row[field] == value,
+            ">": lambda row: row[field] > value,
+            ">=": lambda row: row[field] >= value,
+            "<": lambda row: row[field] < value,
+            "<=": lambda row: row[field] <= value,
+            "!=": lambda row: row[field] != value,
+        }[filter_struct["operator"]]

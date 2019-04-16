@@ -27,6 +27,6 @@ setup(
         "Operating System :: OS Independent",
     ],
     entry_points = {
-        'console_scripts': ['zaius-export=zaius.cli.main'],
+        'console_scripts': ['zaius-export=zaius.cli.main:main'],
     },
 )

@@ -15,21 +15,19 @@ def _query_parser():
     whitespace = parsy.regex(r"\s*")
     lower = lambda x: x.lower()
     string = lambda x: parsy.string(x, lower)
-    
-    def lexeme(v):
-        if isinstance(v, str):
-            v = string(v)
-        return whitespace >> v << whitespace
+
+    def lexeme(value):
+        """A string or parser surrounded by whitespace"""
+
+        if isinstance(value, str):
+            value = string(value)
+        return whitespace >> value << whitespace
 
     lparen = lexeme("(")
     rparen = lexeme(")")
     comma = lexeme(",")
 
-    logop = lexeme(
-        string("and")
-        | string("or")
-        | string("not")
-    )
+    logop = lexeme(string("and") | string("or") | string("not"))
     eqop = lexeme(
         string("<=")
         | string(">=")
@@ -46,10 +44,8 @@ def _query_parser():
     string_part = parsy.regex(r"[^\'\\]+")
     string_esc = string("\\") >> (string("\\") | string("'"))
     quoted = lexeme(
-        string("'")
-        >> (string_part | string_esc).many().concat()
-        << parsy.string("'")
-    ).desc('string')
+        string("'") >> (string_part | string_esc).many().concat() << parsy.string("'")
+    ).desc("string")
     floatnum = lexeme(parsy.regex(r"-?(0|[1-9][0-9]*)([.][0-9]+)")).map(float)
     intnum = lexeme(parsy.regex(r"-?(0|[1-9][0-9]*)")).map(int)
     value = (quoted | floatnum | intnum).desc("value")
@@ -70,7 +66,7 @@ def _query_parser():
         rest0 = rest[0]
         if len(rest) == 1:
             return {rest0[0]: [first, rest0[1]]}
-        
+
         return {rest0[0]: [first, compound_result([rest0[1], rest[1:]])]}
 
     @parsy.generate
@@ -80,7 +76,7 @@ def _query_parser():
         if rest:
             return compound_result([first, rest])
         return first
-    
+
     quoted_where_expression = lparen >> where_expression << rparen
 
     select_kw = lexeme("select")
@@ -90,9 +86,7 @@ def _query_parser():
 
     sort_order = lexeme(string("asc") | string("desc"))
     field_sort = parsy.seq(field, sort_order.optional())
-    order_by_kw = lexeme(
-        parsy.seq(string("order"), whitespace, string("by"))
-    )
+    order_by_kw = lexeme(parsy.seq(string("order"), whitespace, string("by")))
 
     def query_result(args):
         select = {"fields": args[1], "object": args[3]}
