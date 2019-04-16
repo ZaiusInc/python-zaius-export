@@ -21,8 +21,8 @@ class ProductAttribution(ReportSpec):
             help="individual purchases attributed to the 3-day last touched campaign",
         )
 
-        parser.add_argument("start_date", help="earlist date. included in the report.")
-        parser.add_argument("end_date", help="latest date. not included in the report.")
+        parser.add_argument("start_date", help="earlist date, YYYY-MM-DD, inclusive")
+        parser.add_argument("end_date", help="latest date, YYYY-MM-DD, exclusive")
         parser.set_defaults(func=self.execute)
 
     #pylint: disable=R0914
@@ -113,10 +113,11 @@ class ProductAttribution(ReportSpec):
                         "subtotal": row["order_item_subtotal"],
                     }
                 )
+        sys.stderr.write("Read {} rows\n".format(idx))
 
     #pylint: disable=R0201
     def _parse_date(self, date_str):
-        return datetime.datetime.strptime(date_str, "%Y/%m/%d").date()
+        return datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
 
 
 ReportSpec.register(ProductAttribution())
