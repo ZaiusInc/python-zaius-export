@@ -16,7 +16,7 @@ class TestParser(unittest.TestCase):
     """Parser tests"""
 
     def test_queries_parse(self):
-        #pylint: disable=C0330
+        # pylint: disable=C0330
 
         """Verify that valid queries parse and invalid queries
         do not parse"""
