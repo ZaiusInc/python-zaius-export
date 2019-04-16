@@ -9,7 +9,7 @@ setup(
     description='Zaius Export API Interface',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='http://github.com/zaius/python-zaius-export',
+    url='http://github.com/zaiusinc/python-zaius-export',
     author='The Zaius Team',
     author_email='engineering@zaius.com',
     license='Apache 2.0',
