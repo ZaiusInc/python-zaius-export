@@ -26,6 +26,17 @@ Or, use pre-baked reports. Like this:
 $ zaius-export product-attribution '2019-1-1' '2019-1-31' --auth zaius-api.ini
 ```
 
+## Installation
+
+zaius\_export only exists in pypi testing currently. This means that to install it you need
+to pass an extra argument to pip:
+
+```
+pip install --extra-index-url https://test.pypi.org/simple/ zaius_export
+```
+
+Now the `zaius-export` utility should be on your PATH.
+
 ## Authorization
 
 API calls depend on having a set of credentials available to authenticate your request. By
