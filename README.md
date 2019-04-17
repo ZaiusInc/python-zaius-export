@@ -1,7 +1,8 @@
-zaius-export: Zaius Data for Engineers
-======================================
+zaius\_export: export api for custom reporting
+=============================================
 
-Build and automate aweseome reports. Like this:
+Using zaius\_export, you can build and automate aweseome reports.
+Like this:
 ``` {.sourceCode .python}
 import datetime
 import zaius.export as export
@@ -41,6 +42,6 @@ You can find the appropriate values for this file by logging into Zaius. Click t
 next to your business name at the top left of the screen, select "APIs" from the menu on the
 left (under Data Management), and then find your zaius\_secret\_key under the Private tab.
 
-Your AWS credentials can be found in the Integrations section (same gear icon, Data Management,
-integrations) by opening the AWS integration.
+Your AWS credentials can be found in the Integrations section (Gear Icon, Data Management,
+Integrations) by opening the AWS integration.
 
