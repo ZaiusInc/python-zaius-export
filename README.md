@@ -23,8 +23,14 @@ print(len(set([r['user_id'] for r in rows])))
 
 Or, use pre-baked reports. Like this:
 ``` {.sourceCode .bash}
-$ zaius-export product-attribution '2019-1-1' '2019-1-31' --auth zaius-api.ini
+$ zaius-export --auth zaius-api.ini product-attribution 2019-1-1 2019-1-31
 ```
+
+Or This:
+```
+$ zaius-export --auth zaius-api.ini lifecycle-progress 2018-1 2019-1
+```
+
 
 ## Installation
 

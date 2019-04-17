@@ -11,5 +11,6 @@ the zaius-export command line utility.
 from .spec import ReportSpec
 from . import demo
 from . import product_attribution
+from . import lifecycle_progress
 
 SPECS = ReportSpec.specs

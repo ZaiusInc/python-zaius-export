@@ -25,7 +25,7 @@ class ProductAttribution(ReportSpec):
         parser.add_argument("end_date", help="latest date, YYYY-MM-DD, exclusive")
         parser.set_defaults(func=self.execute)
 
-    #pylint: disable=R0914
+    # pylint: disable=R0914
     def execute(self, api, destination, args):
         writer = csv.DictWriter(
             destination,
@@ -93,6 +93,7 @@ class ProductAttribution(ReportSpec):
             within_window = dt_s < (3 * 24 * 3600)
             return after_engagement and within_window
 
+        idx = 0
         for idx, row in enumerate(rows):
             if idx % 100000 == 0:
                 sys.stderr.write("Read {} rows\n".format(idx))
@@ -115,7 +116,7 @@ class ProductAttribution(ReportSpec):
                 )
         sys.stderr.write("Read {} rows\n".format(idx))
 
-    #pylint: disable=R0201
+    # pylint: disable=R0201
     def _parse_date(self, date_str):
         return datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
 
