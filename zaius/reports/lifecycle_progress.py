@@ -42,7 +42,8 @@ class LifecycleProgress(ReportSpec):
         select
             ts,
             user_id,
-            event_type
+            event_type,
+            order_id
         from events
         where
             ts < {end_date_s}
@@ -50,7 +51,7 @@ class LifecycleProgress(ReportSpec):
                 (
                     event_type = 'order'
                     and action = 'purchase'
-                    and order.status = 'purchased'
+                    and order.status <> 'canceled'
                 )
                 or event_type = 'customer_discovered'
             )
@@ -88,12 +89,12 @@ class LifecycleProgress(ReportSpec):
         # that we'll see all of one user before we see then next
         current_user = None
         current_month = None
-        purchase_count = 0
+        purchase_count = set()
 
         def _finish_pending(month):
             if current_user is not None:
                 for idx in range(current_month, month):
-                    month_counts[idx][_stage(purchase_count)] += 1
+                    month_counts[idx][_stage(len(purchase_count))] += 1
 
         for idx, row in enumerate(rows):
             if idx % 100000 == 0:
@@ -103,7 +104,7 @@ class LifecycleProgress(ReportSpec):
                 _finish_pending(len(month_counts))
                 current_user = row["user_id"]
                 current_month = None
-                purchase_count = 0
+                purchase_count = set()
 
             ts_s = datetime.datetime.utcfromtimestamp(int(row["ts"]))
             month = self._months_between(start_date, ts_s)
@@ -113,7 +114,7 @@ class LifecycleProgress(ReportSpec):
                 # record the purchase
                 _finish_pending(month)
                 current_month = max(0, month)
-                purchase_count += 1
+                purchase_count.add(row['order_id'])
 
         _finish_pending(len(month_counts))
         sys.stderr.write("Read {} rows\n".format(idx))

@@ -32,6 +32,7 @@ def _query_parser():
         string("<=")
         | string(">=")
         | string("!=")
+        | string("<>").result('!=')
         | string("<")
         | string(">")
         | string("=")
