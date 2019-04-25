@@ -114,7 +114,7 @@ class LifecycleProgress(ReportSpec):
                 # record the purchase
                 _finish_pending(month)
                 current_month = max(0, month)
-                purchase_count.add(row['order_id'])
+                purchase_count.add(row["order_id"])
 
         _finish_pending(len(month_counts))
         sys.stderr.write("Read {} rows\n".format(idx))

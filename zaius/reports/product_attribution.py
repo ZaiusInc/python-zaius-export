@@ -27,10 +27,18 @@ class ProductAttribution(ReportSpec):
 
     # pylint: disable=R0914
     def execute(self, api, destination, args):
-        writer = csv.DictWriter(
-            destination,
-            ["campaign", "product_id", "order_id", "email", "quantity", "subtotal"],
-        )
+        columns = [
+            "campaign",
+            "last_engagement",
+            "last_engagement_ts",
+            "product_id",
+            "order_id",
+            "purchase_ts",
+            "email",
+            "quantity",
+            "subtotal",
+        ]
+        writer = csv.DictWriter(destination, columns)
         writer.writeheader()
 
         start_date = self._parse_date(args.start_date)
@@ -107,8 +115,11 @@ class ProductAttribution(ReportSpec):
                 writer.writerow(
                     {
                         "campaign": last_engagement["campaign"],
+                        "last_engagement": last_engagement["action"],
+                        "last_engagement_ts": last_engagement["ts"],
                         "product_id": row["product_id"],
                         "order_id": row["order_id"],
+                        "purchase_ts": row["ts"],
                         "email": row["customer.email"],
                         "quantity": row["order_item_quantity"],
                         "subtotal": row["order_item_subtotal"],

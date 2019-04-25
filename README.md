@@ -3,7 +3,7 @@ zaius\_export: export api for custom reporting
 
 Using zaius\_export, you can build and automate aweseome reports.
 Like this:
-``` {.sourceCode .python}
+```python
 import datetime
 import zaius.export as export
 
@@ -22,23 +22,22 @@ print(len(set([r['user_id'] for r in rows])))
 ```
 
 Or, use pre-baked reports. Like this:
-``` {.sourceCode .bash}
+```sh
 $ zaius-export --auth zaius-api.ini product-attribution 2019-1-1 2019-1-31
 ```
 
 Or This:
-```
+```sh
 $ zaius-export --auth zaius-api.ini lifecycle-progress 2018-1 2019-1
 ```
 
 
 ## Installation
 
-zaius\_export only exists in pypi testing currently. This means that to install it you need
-to pass an extra argument to pip:
+Installation happens in the usual way:
 
-```
-pip install --extra-index-url https://test.pypi.org/simple/ zaius_export
+```sh
+$ pip install  zaius_export
 ```
 
 Now the `zaius-export` utility should be on your PATH.
@@ -61,4 +60,13 @@ left (under Data Management), and then find your zaius\_secret\_key under the Pr
 
 Your AWS credentials can be found in the Integrations section (Gear Icon, Data Management,
 Integrations) by opening the AWS integration.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/ZaiusInc/zaius-magento-2/tags). 
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
