@@ -104,6 +104,9 @@ class API:
             API.ENDPOINT, json=query_dict, headers=self._headers()
         ).json()
         self.log.info("api_request response:\n{}".format(json.dumps(resp, indent=2)))
+        if resp.get("status", 200) != 200:
+            raise ExecutionError(resp.get("detail", {}).get("message", "unknown error"))
+
         return resp
 
     def _api_status(self, req):

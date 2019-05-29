@@ -64,7 +64,10 @@ class TestParser(unittest.TestCase):
         )
 
         # results can be filtered
-        today_s = datetime.date.today().strftime("%s")
+        today = datetime.datetime.fromordinal(
+            datetime.date.today().toordinal()
+        ).replace(tzinfo=datetime.timezone.utc)
+        today_s = int(today.timestamp())
         self.assert_valid(
             """
             select user_id

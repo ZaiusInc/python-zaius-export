@@ -18,9 +18,9 @@ class TestReports(unittest.TestCase):
         """Verify helpers for lifecycle progress report"""
 
         report = LifecycleProgress()
-        jan2018 = datetime.date(2018, 1, 1)
-        jan2019 = datetime.date(2019, 1, 1)
-        feb2019 = datetime.date(2019, 2, 1)
+        jan2018 = datetime.datetime(2018, 1, 1, tzinfo=datetime.timezone.utc)
+        jan2019 = datetime.datetime(2019, 1, 1, tzinfo=datetime.timezone.utc)
+        feb2019 = datetime.datetime(2019, 2, 1, tzinfo=datetime.timezone.utc)
 
         self.assertEqual(report._parse_month("2018-1"), jan2018)
         self.assertEqual(report._months_between(jan2018, jan2019), 12)

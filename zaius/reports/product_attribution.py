@@ -46,13 +46,13 @@ class ProductAttribution(ReportSpec):
 
         # build our query
         params = {
-            "start_date_s": start_date.strftime("%s"),
-            "end_date_s": end_date.strftime("%s"),
+            "start_date_s": int(start_date.timestamp()),
+            "end_date_s": int(end_date.timestamp()),
         }
         stmt = """
         select
             ts,
-            user_id,
+            zaius_id,
             product_id,
             order_id,
             customer.email,
@@ -78,7 +78,7 @@ class ProductAttribution(ReportSpec):
                 and order.status = 'purchased'
               )
             )
-        order by user_id, ts
+        order by zaius_id, ts
         """.format(
             **params
         )
@@ -86,7 +86,7 @@ class ProductAttribution(ReportSpec):
         # issue the query
         rows = api.query(stmt)
 
-        # our result comes back ordered by user_id, ts so we can know
+        # our result comes back ordered by zaius_id, ts so we can know
         # that we'll see all of one user before we see then next
         current_user = None
         last_engagement = None
@@ -106,8 +106,8 @@ class ProductAttribution(ReportSpec):
             if idx % 100000 == 0:
                 sys.stderr.write("Read {} rows\n".format(idx))
 
-            if row["user_id"] != current_user:
-                current_user = row["user_id"]
+            if row["zaius_id"] != current_user:
+                current_user = row["zaius_id"]
                 last_engagement = None
             if row["action"] in ("open", "click"):
                 last_engagement = row
@@ -129,7 +129,9 @@ class ProductAttribution(ReportSpec):
 
     # pylint: disable=R0201
     def _parse_date(self, date_str):
-        return datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+        return datetime.datetime.strptime(date_str, "%Y-%m-%d").replace(
+            tzinfo=datetime.timezone.utc
+        )
 
 
 ReportSpec.register(ProductAttribution())

@@ -37,11 +37,11 @@ class LifecycleProgress(ReportSpec):
         end_date = self._parse_month(args.end_month)
 
         # build our query
-        params = {"end_date_s": end_date.strftime("%s")}
+        params = {"end_date_s": int(end_date.timestamp())}
         stmt = """
         select
             ts,
-            user_id,
+            zaius_id,
             event_type,
             order_id
         from events
@@ -55,7 +55,7 @@ class LifecycleProgress(ReportSpec):
                 )
                 or event_type = 'customer_discovered'
             )
-        order by user_id, ts
+        order by zaius_id, ts
         """.format(
             **params
         )
@@ -85,7 +85,7 @@ class LifecycleProgress(ReportSpec):
                 return "repeat_purchase"
             return "loyal"
 
-        # our result comes back ordered by user_id, ts so we can know
+        # our result comes back ordered by zaius_id, ts so we can know
         # that we'll see all of one user before we see then next
         current_user = None
         current_month = None
@@ -100,9 +100,9 @@ class LifecycleProgress(ReportSpec):
             if idx % 100000 == 0:
                 sys.stderr.write("Read {} rows\n".format(idx))
 
-            if row["user_id"] != current_user:
+            if row["zaius_id"] != current_user:
                 _finish_pending(len(month_counts))
-                current_user = row["user_id"]
+                current_user = row["zaius_id"]
                 current_month = None
                 purchase_count = set()
 
@@ -124,7 +124,9 @@ class LifecycleProgress(ReportSpec):
 
     # pylint: disable=R0201
     def _parse_month(self, date_str):
-        return datetime.datetime.strptime(date_str, "%Y-%m").date()
+        return datetime.datetime.strptime(date_str, "%Y-%m").replace(
+            tzinfo=datetime.timezone.utc
+        )
 
     # pylint: disable=R0201
     def _months_between(self, begin, end):
@@ -133,7 +135,9 @@ class LifecycleProgress(ReportSpec):
     def _month_add(self, begin, step):
         year_inc = (begin.month - 1 + step) // 12
         month = ((begin.month - 1 + step) % 12) + 1
-        return datetime.date(begin.year + year_inc, month, 1)
+        return datetime.datetime(
+            begin.year + year_inc, month, 1, tzinfo=datetime.timezone.utc
+        )
 
 
 ReportSpec.register(LifecycleProgress())

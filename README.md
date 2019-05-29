@@ -9,6 +9,8 @@ import zaius.export as export
 
 # count the users who clicked this week
 last_week = datetime.date.today() - datetime.timedelta(days=7)
+last_week = datetime.datetime.fromordinal(last_week.toordinal()).replace(tzinfo=datetime.timezone.utc)
+
 query = """
 select user_id
 from events
@@ -16,7 +18,7 @@ where
   event_type = 'email'
   and action = 'click'
   and ts > {}
-""".format(last_week.strftime('%s')
+""".format(int(last_week.timestamp()))
 rows = export.API().query(query)
 print(len(set([r['user_id'] for r in rows])))
 ```
