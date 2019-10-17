@@ -25,12 +25,17 @@ print(len(set([r['user_id'] for r in rows])))
 
 Or, use pre-baked reports. Like this:
 ```sh
-$ zaius-export --auth zaius-api.ini product-attribution 2019-1-1 2019-1-31
+$ zaius-export product-attribution 2019-1-1 2019-1-31
 ```
 
 Or This:
 ```sh
-$ zaius-export --auth zaius-api.ini lifecycle-progress 2018-1 2019-1
+$ zaius-export lifecycle-progress 2018-1 2019-1
+```
+
+You can specify the output file. This example creates an export.csv file in the Documents directory:
+```sh
+$ zaius-export --output ~/Documents/export.csv product-attribution 2019-1-1 2019-1-31
 ```
 
 
@@ -39,7 +44,7 @@ $ zaius-export --auth zaius-api.ini lifecycle-progress 2018-1 2019-1
 Installation happens in the usual way:
 
 ```sh
-$ pip install  zaius_export
+$ pip install zaius_export
 ```
 
 Now the `zaius-export` utility should be on your PATH.
@@ -47,7 +52,7 @@ Now the `zaius-export` utility should be on your PATH.
 ## Authorization
 
 API calls depend on having a set of credentials available to authenticate your request. By
-default, all tools will look for these to be defined in $HOME/.zaius\_api.ini. This file
+default, all tools will look for these to be defined in $HOME/.zaius\_api. This file
 should look like this:
 ``` {.sourceCode .ini}
 [auth]
