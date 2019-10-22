@@ -23,6 +23,12 @@ class ProductAttribution(ReportSpec):
 
         parser.add_argument("start_date", help="earlist date, YYYY-MM-DD, inclusive")
         parser.add_argument("end_date", help="latest date, YYYY-MM-DD, exclusive")
+        parser.add_argument(
+            "--attribution-days",
+            help="maximum number of days after an engagement that a purchase can be attributed",
+            default=3,
+        )
+
         parser.set_defaults(func=self.execute)
 
     # pylint: disable=R0914
@@ -43,6 +49,7 @@ class ProductAttribution(ReportSpec):
 
         start_date = self._parse_date(args.start_date)
         end_date = self._parse_date(args.end_date)
+        attribution_days = int(args.attribution_days)
 
         # build our query
         params = {
@@ -61,23 +68,22 @@ class ProductAttribution(ReportSpec):
             campaign,
             order_item_subtotal
         from events
-        where 
-            ts >= {start_date_s}
-            and ts < {end_date_s}
+        where
+          (
+            event_type = 'email'
             and (
-              (
-                event_type = 'email'
-                and (
-                  action = 'open'
-                  or action = 'click'
-                )
-              )
-              or (
-                event_type = 'order'
-                and action = 'purchase'
-                and order.status = 'purchased'
-              )
+              action = 'open'
+              or action = 'click'
             )
+            and campaign_schedule_run_ts >= {start_date_s}
+            and campaign_schedule_run_ts < {end_date_s}
+          )
+          or (
+            event_type = 'order'
+            and action = 'purchase'
+            and order.status = 'purchased'
+            and ts >= {start_date_s}
+          )
         order by zaius_id, ts
         """.format(
             **params
@@ -98,7 +104,7 @@ class ProductAttribution(ReportSpec):
             dt_s = int(conv["ts"]) - int(last_engagement["ts"])
 
             after_engagement = dt_s > 0
-            within_window = dt_s < (3 * 24 * 3600)
+            within_window = dt_s < (attribution_days * 24 * 3600)
             return after_engagement and within_window
 
         idx = 0

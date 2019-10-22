@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="zaius_export",
-    version="1.3",
+    version="1.4",
     description="Zaius Export API Interface",
     long_description=long_description,
     long_description_content_type="text/markdown",
