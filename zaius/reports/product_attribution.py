@@ -35,6 +35,7 @@ class ProductAttribution(ReportSpec):
     def execute(self, api, destination, args):
         columns = [
             "campaign",
+            "campaign_send_ts",
             "last_engagement",
             "last_engagement_ts",
             "product_id",
@@ -66,7 +67,8 @@ class ProductAttribution(ReportSpec):
             action,
             order_item_quantity,
             campaign,
-            order_item_subtotal
+            order_item_subtotal,
+            campaign_schedule_run_ts
         from events
         where
           (
@@ -121,6 +123,7 @@ class ProductAttribution(ReportSpec):
                 writer.writerow(
                     {
                         "campaign": last_engagement["campaign"],
+                        "campaign_send_ts": last_engagement["campaign_schedule_run_ts"],
                         "last_engagement": last_engagement["action"],
                         "last_engagement_ts": last_engagement["ts"],
                         "product_id": row["product_id"],
