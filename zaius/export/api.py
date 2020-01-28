@@ -76,10 +76,10 @@ class API:
 
         # execute query and await completion
         api_resp = self._api_request(query_dict)
-        while api_resp["state"] in ("pending", "running"):
+        while api_resp.get("state") in ("pending", "running"):
             time.sleep(1)
             api_resp = self._api_status(api_resp)
-        if api_resp["state"] != "completed":
+        if api_resp.get("state") != "completed":
             raise ExecutionError(
                 "query did not complete. response=`{}`".format(api_resp)
             )
