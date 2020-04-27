@@ -14,7 +14,7 @@ setup(
     author_email="engineering@zaius.com",
     license="Apache 2.0",
     packages=find_packages(),
-    install_requires=["requests", "parsy", "boto3"],
+    install_requires=["requests", "parsy", "boto3>=1.12", "python-dateutil==2.8.0"],
     test_suite="nose.collector",
     tests_require=["nose"],
     classifiers=[
