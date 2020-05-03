@@ -26,11 +26,7 @@ class EmailMetrics(ReportSpec):
         default = '9097',)
         parser.add_argument("start_date", help="earlist date, YYYY-MM-DD, inclusive")
         parser.add_argument("end_date", help="latest date, YYYY-MM-DD, exclusive")
-        parser.add_argument(
-            "--attribution-days",
-            help="maximum number of days after an engagement that a purchase can be attributed",
-            default=3,
-        )
+        
 
         parser.set_defaults(func=self.execute)
 
@@ -52,7 +48,7 @@ class EmailMetrics(ReportSpec):
         campaign_id = str(args.campaign_id)
         start_date = self._parse_date(args.start_date)
         end_date = self._parse_date(args.end_date)
-        attribution_days = int(args.attribution_days)
+        # attribution_days = int(args.attribution_days)
 
         # build our query
         params = {
@@ -85,52 +81,82 @@ class EmailMetrics(ReportSpec):
             event_type = 'list'
             and action = 'unsubscribe'
             and ts >= {start_date_s}
+            and ts < {end_date_s}
             and campaign_id= {campaign_id_s}
           )
-        order by zaius_id, campaign_schedule_run_ts
+        order by zaius_id, campaign_schedule_run_ts, action
         """.format(
             **params
         )
 
         # issue the query
         rows = api.query(stmt)
-        all_rows = (row for row in rows)
 
-        makeset = set()
-        for row in all_rows:
-            x = json.dumps(row)
-            makeset.add(x)
-
-        makelist = list(makeset)
-        loadedlist = [(json.loads(i)) for i in makelist]
-
-        rows = 0
         sends = 0
         opens = 0
         clicks = 0
         unsubs = 0
         spamreports = 0
-        
-        result = [{k:v} for k,v in enumerate(loadedlist)]
 
-        for each in result:
-            if (each.get(rows).get('action') == 'sent'):
-                rows = rows + 1
-                sends = sends + 1
-            elif (each.get(rows).get('action') == 'open'):
-                rows = rows + 1
-                opens = opens + 1
-            elif (each.get(rows).get('action') == 'click'):
-                rows = rows + 1
-                clicks = clicks + 1
-            elif (each.get(rows).get('action') == 'unsubscribe'):
-                rows = rows + 1
-                unsubs = unsubs + 1
-            elif (each.get(rows).get('action') == 'spamreport'):
-                rows = rows + 1
-                spamreports = spamreports + 1
-            else:
-                rows = rows + 1
+        saw_open = False
+        saw_send = False
+        saw_clicks = False
+        saw_unsub = False
+        saw_spamreport = False
+
+        last_user_id = None
+        last_csrt = None
+        last_action = None
+        idx = 0
+
+        for idx, row in enumerate(rows):
+            if idx % 100000 == 0:
+                sys.stderr.write("Read {} rows\n".format(idx))
+            if (
+                (last_user_id != row['zaius_id'] and last_csrt != row['campaign_schedule_run_ts'] and last_action != row['action'])
+                or (last_user_id == row['zaius_id'] and last_csrt != row['campaign_schedule_run_ts'] and last_action != row['action'])
+                or (last_user_id == row['zaius_id'] and last_csrt == row['campaign_schedule_run_ts'] and last_action != row['action'])
+                or (last_user_id != row['zaius_id'] and last_csrt == row['campaign_schedule_run_ts'] and last_action != row['action'])
+                or (last_user_id != row['zaius_id'] and last_csrt == row['campaign_schedule_run_ts'] and last_action == row['action'])
+                or (last_user_id == row['zaius_id'] and last_csrt != row['campaign_schedule_run_ts'] and last_action == row['action'])
+                or (last_user_id != row['zaius_id'] and last_csrt != row['campaign_schedule_run_ts'] and last_action == row['action'])
+                ):
+                last_user_id = row['zaius_id']
+                last_csrt = row['campaign_schedule_run_ts']
+                last_action = row['action']
+                saw_open = False
+                saw_send = False
+                saw_clicks = False
+                saw_unsub = False
+                saw_spamreport = False
+                
+                
+                if row['action'] == 'open':
+                    saw_open = True
+                if row['action'] == 'sent':
+                    saw_send = True
+                if row['action'] == 'click':
+                    saw_clicks = True
+                if row['action'] == 'unsubscribe':
+                    saw_unsub = True
+                if row['action'] == 'spamreport':
+                    saw_spamreport = True
+                if saw_open:
+                    opens += 1
+                if saw_send:
+                    sends += 1
+                if saw_clicks:
+                    clicks += 1
+                if saw_unsub:
+                    unsubs +=1
+                if saw_spamreport:
+                    spamreports += 1
+            elif (last_user_id == row['zaius_id'] and last_csrt == row['campaign_schedule_run_ts'] and last_action == row['action']):
+                opens
+                sends
+                clicks
+                unsubs
+                spamreports
         
         writer.writerow(
                     {
@@ -144,6 +170,7 @@ class EmailMetrics(ReportSpec):
                         "unsubscribe rate (%)": unsubs / sends * 100
                     }
                 )
+        sys.stderr.write("Read {} rows\n".format(idx))
 
 
     # pylint: disable=R0201
