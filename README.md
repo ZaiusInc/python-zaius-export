@@ -32,6 +32,13 @@ Or This:
 ```sh
 $ zaius-export lifecycle-progress 2018-1 2019-1
 ```
+Or This:
+```sh
+$ zaius-export email-metrics 9097 2019-4-25 2020-4-25
+```
+Replace '9097' with the campaign ID you want to view metrics for. 
+Replace '2019-4-25 2020-4-25' with the timerange of your choice. This timerange reflects the times assigned to the 'Scheduled Campaign Run Time' field of email send events. For each of the send events that meet that time range, any and all opens, clicks, and spamreports are counted if they happened, irregardless of when they happened.
+This timerange also serves as the lower and upper bounds in which unsubscribe events happened.
 
 You can specify the output file. This example creates an export.csv file in the Documents directory:
 ```sh
