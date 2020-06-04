@@ -1,7 +1,7 @@
 zaius\_export: export api for custom reporting
 =============================================
 
-Using zaius\_export, you can build and automate aweseome reports.
+Using zaius\_export, you can build and automate custom reports.
 Like this:
 ```python
 import datetime
