@@ -6,7 +6,7 @@ Aggregates performance of Daily marketing content in the specified campaign_sche
 
 import csv
 import datetime
-from collections import Counter
+import re
 
 from .spec import ReportSpec
 
@@ -32,7 +32,9 @@ class DailyContent(ReportSpec):
             "content link",
             "count of unique clicks",
             "click through rate (%)",
-            "marketing content category"
+            "marketing content category",
+            "marketing_content_header",
+            "marketing_content_sale_numbers"
         ]
         writer = csv.DictWriter(destination, columns)
         writer.writeheader()
@@ -69,8 +71,7 @@ class DailyContent(ReportSpec):
           or (
             event_type = 'email'
             and action = 'click'
-            and campaign_schedule_run_ts >= {start_date_s}
-            and campaign_schedule_run_ts < {end_date_s}
+            and ts >= {start_date_s}
             and campaign_id= '9097'
           )
         order by value
@@ -82,48 +83,47 @@ class DailyContent(ReportSpec):
         rows = api.query(stmt)
 
         current_value = None
-        current_action = None
-        current_row = None
-
+        current_marketing_content_category = None
+        current_marketing_content_header = None
+        current_marketing_content_sale_numbers = None
+        current_user_click = None
+        last_user_click = None
         count_content = 0
         count_click = 0
-
-        # def write_to_csv():
-        #     writer.writerow(
-        #         {
-        #             "count of assignments": count_content,
-        #             "content link": current_value,
-        #             "count of unique clicks": count_click
-        #         }
-        #     )
             
         for row in rows:
-            if current_value == None:
-                current_value = row["value"]
-            while row["value"] == current_value:
-                if row["action"] == 'content':
-                    count_content += 1
-                elif row["action"] == 'click':
-                    count_click += 1
-
-
-
-            # if row["value"] == current_value:
-            #     if row["action"] == 'content':
-            #         count_content += 1
-            #     elif row["action"] == 'click':
-            #         count_click += 1
-            if row["value"] != current_value:
-                writer.writerow(
-                    {
-                        "count of assignments": count_content,
-                        "content link": current_value,
-                        "count of unique clicks": count_click
-                    }
-                )
-                current_value == row["value"]
-                count_content = 0 
-                count_click = 0
+            if re.search("sothebys.com", row["value"]): 
+                if current_value == None:
+                    current_value = row
+                if row["value"] == current_value["value"]:
+                    
+                    if row["action"] == 'content':
+                        current_marketing_content_category = row["marketing_content_category"]
+                        current_marketing_content_header = row["marketing_content_header"]
+                        current_marketing_content_sale_numbers = row["marketing_content_sale_numbers"]
+                        count_content += 1
+                    elif row["action"] == 'click':
+                        current_user_click = (row['zaius_id'], row['value'])
+                        if current_user_click != last_user_click:
+                            count_click += 1
+                            last_user_click = current_user_click
+                
+                if row["value"] != current_value["value"]:
+                    if count_content != 0:
+                        writer.writerow(
+                            {
+                                "count of assignments": count_content,
+                                "content link": current_value["value"],
+                                "count of unique clicks": count_click,
+                                "click through rate (%)": count_click / count_content * 100,
+                                "marketing content category": current_marketing_content_category,
+                                "marketing_content_header": current_marketing_content_header,
+                                "marketing_content_sale_numbers": current_marketing_content_sale_numbers
+                            }
+                        )
+                    current_value = row
+                    count_content = 0 
+                    count_click = 0
 
     # pylint: disable=R0201
     def _parse_date(self, date_str):
