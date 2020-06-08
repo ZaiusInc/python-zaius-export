@@ -13,5 +13,6 @@ from . import demo
 from . import product_attribution
 from . import lifecycle_progress
 from . import email_metrics
+from . import daily_content
 
 SPECS = ReportSpec.specs

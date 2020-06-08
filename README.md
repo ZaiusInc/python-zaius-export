@@ -44,6 +44,10 @@ You can specify the output file. This example creates an export.csv file in the 
 ```sh
 $ zaius-export --output ~/Documents/export.csv product-attribution 2019-1-1 2019-1-31
 ```
+Or This:
+```sh
+$ zaius-expot daily-content 2020-4-20 2020-4-25
+```
 
 
 ## Installation

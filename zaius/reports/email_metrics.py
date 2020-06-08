@@ -87,7 +87,6 @@ class EmailMetrics(ReportSpec):
 
         last_user_id_csrt = None
 
-
         seen_actions = {}
         unique_counts = {}
         for row in rows:
