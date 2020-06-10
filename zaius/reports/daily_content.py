@@ -74,7 +74,7 @@ class DailyContent(ReportSpec):
             and ts >= {start_date_s}
             and campaign_id= '9097'
           )
-        order by value
+        order by value, action, zaius_id
         """.format(
             **params
         )
@@ -83,31 +83,33 @@ class DailyContent(ReportSpec):
         rows = api.query(stmt)
 
         current_value = None
-        current_marketing_content_category = None
-        current_marketing_content_header = None
-        current_marketing_content_sale_numbers = None
+        current_mk_content_category = None
+        current_mk_content_header = None
+        current_mk_content_sale_numbers = None
         current_user_click = None
         last_user_click = None
         count_content = 0
         count_click = 0
-            
+
         for row in rows:
-            if re.search("sothebys.com", row["value"]): 
-                if current_value == None:
+            if re.search("sothebys.com", row["value"]):
+                if current_value is None:
                     current_value = row
                 if row["value"] == current_value["value"]:
-                    
+
                     if row["action"] == 'content':
-                        current_marketing_content_category = row["marketing_content_category"]
-                        current_marketing_content_header = row["marketing_content_header"]
-                        current_marketing_content_sale_numbers = row["marketing_content_sale_numbers"]
+                        current_mk_content_category = row["marketing_content_category"]
+                        current_mk_content_header = row["marketing_content_header"]
+                        current_mk_content_sale_numbers = row["marketing_content_sale_numbers"]
                         count_content += 1
                     elif row["action"] == 'click':
-                        current_user_click = (row['zaius_id'], row['value'])
+                        current_user_click = (row['value'], row['action'], row['zaius_id'])
                         if current_user_click != last_user_click:
+                            # print('last_user_click', last_user_click)
                             count_click += 1
+                            # print('current_user_click', current_user_click)
                             last_user_click = current_user_click
-                
+
                 if row["value"] != current_value["value"]:
                     if count_content != 0:
                         writer.writerow(
@@ -116,13 +118,13 @@ class DailyContent(ReportSpec):
                                 "content link": current_value["value"],
                                 "count of unique clicks": count_click,
                                 "click through rate (%)": count_click / count_content * 100,
-                                "marketing content category": current_marketing_content_category,
-                                "marketing_content_header": current_marketing_content_header,
-                                "marketing_content_sale_numbers": current_marketing_content_sale_numbers
+                                "marketing content category": current_mk_content_category,
+                                "marketing_content_header": current_mk_content_header,
+                                "marketing_content_sale_numbers": current_mk_content_sale_numbers
                             }
                         )
                     current_value = row
-                    count_content = 0 
+                    count_content = 0
                     count_click = 0
 
     # pylint: disable=R0201
