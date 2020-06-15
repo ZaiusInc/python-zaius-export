@@ -74,7 +74,7 @@ class DailyContent(ReportSpec):
             and ts >= {start_date_s}
             and campaign_id= '9097'
           )
-        order by value, action, zaius_id
+        order by value, zaius_id, action
         """.format(
             **params
         )
@@ -103,7 +103,7 @@ class DailyContent(ReportSpec):
                         current_mk_content_sale_numbers = row["marketing_content_sale_numbers"]
                         count_content += 1
                     elif row["action"] == 'click':
-                        current_user_click = (row['value'], row['action'], row['zaius_id'])
+                        current_user_click = (row["value"], row["action"], row["zaius_id"])
                         if current_user_click != last_user_click:
                             # print('last_user_click', last_user_click)
                             count_click += 1
