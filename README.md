@@ -12,7 +12,7 @@ last_week = datetime.date.today() - datetime.timedelta(days=7)
 last_week = datetime.datetime.fromordinal(last_week.toordinal()).replace(tzinfo=datetime.timezone.utc)
 
 query = """
-select user_id
+select zaius_id
 from events
 where
   event_type = 'email'
@@ -20,7 +20,7 @@ where
   and ts > {}
 """.format(int(last_week.timestamp()))
 rows = export.API().query(query)
-print(len(set([r['user_id'] for r in rows])))
+print(len(set([r['zaius_id'] for r in rows])))
 ```
 
 Or, use pre-baked reports. Like this:
