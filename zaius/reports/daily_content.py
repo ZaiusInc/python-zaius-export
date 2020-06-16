@@ -96,7 +96,7 @@ class DailyContent(ReportSpec):
             return (output_key(row), row["zaius_id"])
 
         def update_meta(meta, row):
-            if meta is None or row["action"] == "content":
+            if meta is None and row["action"] == "content":
                 # capture the metadata
                 return {
                     "content link": row["value"],
@@ -124,7 +124,6 @@ class DailyContent(ReportSpec):
                 return
 
             if "count of assignments" in current_output:
-                print('current_output', current_output)
                 ctr = (
                     float(current_output.get("count of unique clicks", 0) * 100)
                     / current_output["count of assignments"]
@@ -149,18 +148,19 @@ class DailyContent(ReportSpec):
             this_output_key = output_key(row)
             this_element_key = element_key(row)
 
-            if this_output_key != last_output_key:
-                # emit our current output
-                if current_output is not None and "count of assignments" in current_output:
-                    write_result(writer, current_output, current_output_meta)
-                current_output = {}
-
             if this_element_key != last_element_key:
                 # update the current output with this element
                 merge_element(current_output, current_element)
 
                 # reset the current element
                 current_element = {}
+
+            if this_output_key != last_output_key:
+                # emit our current output
+                #print('key change', this_output_key, last_output_key)
+                write_result(writer, current_output, current_output_meta)
+                current_output = {}
+                current_output_meta = None
 
             # update the current element with this row
             if row["action"] == "content":
@@ -174,7 +174,6 @@ class DailyContent(ReportSpec):
 
         # flush the final row
         merge_element(current_output, current_element)
-        print('final write here', current_output, current_output_meta)
         write_result(writer, current_output, current_output_meta)
 
     # pylint: disable=R0201
