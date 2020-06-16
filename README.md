@@ -50,8 +50,9 @@ $ zaius-export --output ~/Documents/export.csv product-attribution 2019-1-1 2019
 ```
 Or This:
 ```sh
-$ zaius-expot daily-content 2020-4-20 2020-4-25
+$ zaius-export daily-content 2020-4-20 2020-4-25
 ```
+This will return metrics for the pieces of content assigned to users who receive the Daily. Metrics include click through rate, as well as its corresponding marketing_content fields and sales numbers.
 
 
 ## Installation
