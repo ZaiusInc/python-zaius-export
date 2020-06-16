@@ -114,7 +114,13 @@ class DailyContent(ReportSpec):
             for key, value in current_element.items():
                 current_output[key] = current_output.get(key, 0) + value
 
-        def output_dict(current_output, current_output_meta):
+        def write_result(writer, current_output, current_output_meta):
+            if current_output is None or current_output_meta is None:
+                # we can't output if we're missing a row requirement. This typically happens
+                # when we observe a click against a campaign that we've never seen a send
+                # for.
+                return
+
             if "count of assignments" in current_output:
                 ctr = (
                     float(current_output.get("count of unique clicks", 0) * 100)
@@ -122,11 +128,11 @@ class DailyContent(ReportSpec):
                 )
             else:
                 ctr = 0
-            return {
+            writer.writerow({
                 **current_output_meta,
                 **current_output,
                 "click through rate (%)": ctr,
-            }
+            })
 
         last_output_key = None
         last_element_key = None
@@ -143,7 +149,7 @@ class DailyContent(ReportSpec):
             if this_output_key != last_output_key:
                 # emit our current output
                 if current_output is not None:
-                    writer.writerow(output_dict(current_output, current_output_meta))
+                    write_result(writer, current_output, current_output_meta)
                 current_output = {}
 
             if this_element_key != last_element_key:
@@ -162,6 +168,10 @@ class DailyContent(ReportSpec):
             current_output_meta = update_meta(current_output_meta, row)
             last_output_key = this_output_key
             last_element_key = this_element_key
+
+        # flush the final row
+        merge_element(current_output, current_element)
+        write_result(writer, current_output, current_output_meta)
 
     # pylint: disable=R0201
     def _parse_date(self, date_str):
