@@ -73,6 +73,8 @@ class DailyContent(ReportSpec):
             event_type = 'email'
             and action = 'click'
             and ts >= {start_date_s}
+            and campaign_schedule_run_ts >= {start_date_s}
+            and campaign_schedule_run_ts < {end_date_s}
             and campaign_id= '9097'
           )
         order by value, zaius_id, action
@@ -94,7 +96,7 @@ class DailyContent(ReportSpec):
             return (output_key(row), row["zaius_id"])
 
         def update_meta(meta, row):
-            if meta is None and row["action"] == "content":
+            if meta is None or row["action"] == "content":
                 # capture the metadata
                 return {
                     "content link": row["value"],
@@ -122,6 +124,7 @@ class DailyContent(ReportSpec):
                 return
 
             if "count of assignments" in current_output:
+                print('current_output', current_output)
                 ctr = (
                     float(current_output.get("count of unique clicks", 0) * 100)
                     / current_output["count of assignments"]
@@ -148,7 +151,7 @@ class DailyContent(ReportSpec):
 
             if this_output_key != last_output_key:
                 # emit our current output
-                if current_output is not None:
+                if current_output is not None and "count of assignments" in current_output:
                     write_result(writer, current_output, current_output_meta)
                 current_output = {}
 
@@ -171,6 +174,7 @@ class DailyContent(ReportSpec):
 
         # flush the final row
         merge_element(current_output, current_element)
+        print('final write here', current_output, current_output_meta)
         write_result(writer, current_output, current_output_meta)
 
     # pylint: disable=R0201
