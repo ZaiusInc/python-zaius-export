@@ -157,7 +157,6 @@ class DailyContent(ReportSpec):
 
             if this_output_key != last_output_key:
                 # emit our current output
-                #print('key change', this_output_key, last_output_key)
                 write_result(writer, current_output, current_output_meta)
                 current_output = {}
                 current_output_meta = None
