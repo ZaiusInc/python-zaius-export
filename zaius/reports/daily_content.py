@@ -7,7 +7,7 @@ Aggregates performance of Daily marketing content in the specified campaign_sche
 import csv
 import datetime
 import re
-
+import urllib.parse as parse
 from .spec import ReportSpec
 
 
@@ -88,7 +88,9 @@ class DailyContent(ReportSpec):
         def output_key(row):
             """generates an equality comparable value that uniquely identifies if an output
             row depends on this input row"""
-            return (row["value"],)
+            url = parse.urlparse(row["value"])
+            qparams = parse.parse_qs(url.query)
+            return (qparams.get('utm_content', 'empty'),)
 
         def element_key(row):
             """generates an equality comparable value that uniquely identifies if a user's stats
