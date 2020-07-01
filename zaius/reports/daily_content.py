@@ -147,6 +147,8 @@ class DailyContent(ReportSpec):
         for row in rows:
             if not re.search("sothebys.com", row["value"]):
                 continue
+            if not re.search("Subject", row["marketing_content_category"]):
+                continue
             this_output_key = output_key(row)
             this_element_key = element_key(row)
 
