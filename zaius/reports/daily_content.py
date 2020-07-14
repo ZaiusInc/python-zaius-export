@@ -168,8 +168,6 @@ class DailyContent(ReportSpec):
             if row["action"] == "content":
                 current_element["count of assignments"] = 1
             if row["action"] == "click" and (int(row["ts"]) <= (int(row["campaign_schedule_run_ts"]) + 259200)):
-                print("click ts", row["ts"])
-                print("campaign schedule run ts", row["campaign_schedule_run_ts"])
                 current_element["count of unique clicks"] = 1
 
             current_output_meta = update_meta(current_output_meta, row)
