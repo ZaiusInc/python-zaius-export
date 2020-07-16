@@ -24,6 +24,7 @@ class DailyContent(ReportSpec):
         #                     default='9097')
         parser.add_argument("start_date", help="earlist date, YYYY-MM-DD, inclusive")
         parser.add_argument("end_date", help="latest date, YYYY-MM-DD, exclusive")
+        parser.add_argument("attribution_days", help="days for attribution window")
         parser.set_defaults(func=self.execute)
 
     # pylint: disable=R0914
@@ -42,6 +43,7 @@ class DailyContent(ReportSpec):
 
         start_date = self._parse_date(args.start_date)
         end_date = self._parse_date(args.end_date)
+        attribution_days = args.attribution_days
 
         # build our query
         params = {
@@ -127,10 +129,10 @@ class DailyContent(ReportSpec):
                 return
 
             if "count of assignments" in current_output:
-                ctr = (
+                ctr = round((
                     float(current_output.get("count of unique clicks", 0) * 100)
                     / current_output["count of assignments"]
-                )
+                ), 2)
             else:
                 ctr = 0
             writer.writerow({
@@ -167,7 +169,8 @@ class DailyContent(ReportSpec):
             # update the current element with this row
             if row["action"] == "content":
                 current_element["count of assignments"] = 1
-            if row["action"] == "click" and (int(row["ts"]) <= (int(row["campaign_schedule_run_ts"]) + 259200)):
+            if row["action"] == "click" and (int(row["ts"]) 
+                <= (int(row["campaign_schedule_run_ts"]) + (int(attribution_days)*86400))):
                 current_element["count of unique clicks"] = 1
 
             current_output_meta = update_meta(current_output_meta, row)
