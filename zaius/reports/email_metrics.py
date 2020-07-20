@@ -22,6 +22,7 @@ class EmailMetrics(ReportSpec):
                             default='9097')
         parser.add_argument("start_date", help="earlist date, YYYY-MM-DD, inclusive")
         parser.add_argument("end_date", help="latest date, YYYY-MM-DD, exclusive")
+        parser.add_argument("attribution_days", help="days for attribution window")
         parser.set_defaults(func=self.execute)
 
     # pylint: disable=R0914
@@ -42,6 +43,7 @@ class EmailMetrics(ReportSpec):
         campaign_id = str(args.campaign_id)
         start_date = self._parse_date(args.start_date)
         end_date = self._parse_date(args.end_date)
+        attribution_days = args.attribution_days
 
         # build our query
         params = {
@@ -55,7 +57,8 @@ class EmailMetrics(ReportSpec):
             action,
             event_type,
             campaign_schedule_run_ts,
-            campaign_id
+            campaign_id,
+            ts
         from events
         where
           (
@@ -77,7 +80,7 @@ class EmailMetrics(ReportSpec):
             and ts < {end_date_s}
             and campaign_id= {campaign_id_s}
           )
-        order by zaius_id, campaign_schedule_run_ts, action
+        order by zaius_id, campaign_schedule_run_ts, action, ts
         """.format(
             **params
         )
@@ -91,15 +94,17 @@ class EmailMetrics(ReportSpec):
         unique_counts = {}
         for row in rows:
             current_user_id_csrt = (row['zaius_id'], row['campaign_schedule_run_ts'])
-            if current_user_id_csrt != last_user_id_csrt:
-            # accumulate
-                for action in seen_actions.keys():
-                    unique_counts[action] = unique_counts.get(action, 0) + 1
-            # reset
-                seen_actions = {}
-        # mark
-            seen_actions[row['action']] = True
-            last_user_id_csrt = current_user_id_csrt
+            if (row['campaign_schedule_run_ts'] == '' or (int(row['ts']) 
+            <= (int(row['campaign_schedule_run_ts']) + (int(attribution_days)*86400)))):
+                if current_user_id_csrt != last_user_id_csrt:
+                # accumulate
+                    for action in seen_actions.keys():
+                        unique_counts[action] = unique_counts.get(action, 0) + 1
+                # reset
+                    seen_actions = {}
+            # mark
+                seen_actions[row['action']] = True
+                last_user_id_csrt = current_user_id_csrt
         # final accumulate to catch whatever user we were processing last
         for action in seen_actions.keys():
             unique_counts[action] = unique_counts.get(action, 0) + 1
