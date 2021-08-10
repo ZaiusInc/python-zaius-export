@@ -88,6 +88,7 @@ def _query_parser():
     sort_order = lexeme(string("asc") | string("desc"))
     field_sort = parsy.seq(field, sort_order.optional())
     order_by_kw = lexeme(parsy.seq(string("order"), whitespace, string("by")))
+    limit_kw = lexeme(parsy.seq(string("limit"), whitespace, intnum))
 
     def query_result(args):
         select = {"fields": args[1], "object": args[3]}
@@ -108,6 +109,7 @@ def _query_parser():
         identifier,
         parsy.seq(where_kw, where_expression).optional(),
         parsy.seq(order_by_kw, field_sort.sep_by(comma)).optional(),
+        parsy.seq(limit_kw).optional(),
     ).map(query_result)
     return query
 
