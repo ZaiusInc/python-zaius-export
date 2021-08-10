@@ -82,6 +82,7 @@ def _query_parser():
 
     select_kw = lexeme("select")
     from_kw = lexeme("from")
+    limit_kw = lexeme("limit")
     where_kw = lexeme("where")
     fields = field.sep_by(comma)
 
@@ -108,6 +109,7 @@ def _query_parser():
         identifier,
         parsy.seq(where_kw, where_expression).optional(),
         parsy.seq(order_by_kw, field_sort.sep_by(comma)).optional(),
+        parsy.seq(limit_kw, whitespace, intnum).optional(),
     ).map(query_result)
     return query
 

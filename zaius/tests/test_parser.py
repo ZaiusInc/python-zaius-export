@@ -92,6 +92,14 @@ class TestParser(unittest.TestCase):
             )
         )
 
+        # limits
+        self.assert_valid(
+            """
+            select user_id
+            from events
+            limit 100
+        """)
+
         # invalid queries
 
         # fields must be explicit
