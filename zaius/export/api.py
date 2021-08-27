@@ -145,7 +145,7 @@ class API:
         keys = []
         while True:
             objs = s3_client.list_objects_v2(**kwargs)
-            keys = keys + [obj["Key"] for obj in objs["Contents"]]
+            keys.extend([obj["Key"] for obj in objs["Contents"]])
             if "NextContinuationToken" in objs:
                 kwargs["ContinuationToken"] = objs["NextContinuationToken"]
             else:
