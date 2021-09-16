@@ -178,7 +178,6 @@ class TestParser(unittest.TestCase):
         self.assertIn("limit", result["select"])
         self.assertNotIn("filter", result["select"])
 
-
         result = self.assert_valid(
             """
             select user_id
