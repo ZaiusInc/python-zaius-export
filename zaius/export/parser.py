@@ -84,10 +84,11 @@ def _query_parser():
     from_kw = lexeme("from")
     limit_kw = lexeme("limit")
     where_kw = lexeme("where")
-    fields = field.sep_by(comma)
+    as_fname = lexeme(parsy.seq(whitespace, string("as"), whitespace, field))
+    fields = parsy.seq(field, as_fname.optional()).sep_by(comma)
 
     sort_order = lexeme(string("asc") | string("desc"))
-    field_sort = parsy.seq(field, sort_order.optional())
+    field_sort = parsy.seq(field, sort_order.optional())    
     order_by_kw = lexeme(parsy.seq(string("order"), whitespace, string("by")))
 
     def query_result(args):
@@ -99,6 +100,10 @@ def _query_parser():
             for sort in args[5][1]:
                 sort_chunk = {"field": sort[0], "order": sort[1] or "asc"}
                 select["sorts"].append(sort_chunk)
+        if args[6] is not None:
+            print(args[6])
+            # int representing limit appears in 3rd position
+            select["limit"] = args[6][2]
 
         return {"select": select}
 

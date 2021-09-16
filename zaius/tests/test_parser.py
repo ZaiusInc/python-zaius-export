@@ -45,6 +45,14 @@ class TestParser(unittest.TestCase):
         """
         )
 
+        # aliases are allowed
+        self.assert_valid(
+            """
+            select user_id as user
+            from events
+        """
+        )
+
         # results can be ordered
         self.assert_valid(
             """
@@ -158,6 +166,18 @@ class TestParser(unittest.TestCase):
         )
         self.assertIn("sorts", result["select"])
         self.assertNotIn("filter", result["select"])
+
+        # limit can be processed
+        result = self.assert_valid(
+            """
+            select user_id
+            from events
+            limit 10
+        """
+        )
+        self.assertIn("limit", result["select"])
+        self.assertNotIn("filter", result["select"])
+
 
         result = self.assert_valid(
             """
