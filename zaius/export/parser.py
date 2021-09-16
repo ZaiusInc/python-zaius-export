@@ -100,7 +100,6 @@ def _query_parser():
                 sort_chunk = {"field": sort[0], "order": sort[1] or "asc"}
                 select["sorts"].append(sort_chunk)
         if args[6] is not None:
-            print(args[6])
             # int representing limit appears in 3rd position
             select["limit"] = args[6][2]
 
