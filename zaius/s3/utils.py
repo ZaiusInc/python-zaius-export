@@ -60,6 +60,4 @@ def upload_to_s3(auth_struct, local_path, bucket, key):
     and to allow for paralellism
     """
     client = init_s3_client(auth_struct)
-    print(auth_struct['aws_access_key_id'])
-    print(auth_struct["aws_secret_access_key"])
     client.upload_file(local_path, bucket, key)
