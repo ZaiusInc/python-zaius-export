@@ -18,7 +18,7 @@ from functools import partial
 import requests
 import boto3
 import zaius.auth as auth
-from zaius.s3.utils import S3Client
+from zaius.s3 import list_objects, par_s3_download
 
 from .parser import QUERY_PARSER
 
@@ -137,16 +137,15 @@ class API:
         bucket = path_parts.group(1)
         prefix = path_parts.group(2)
 
-        s3_client = S3Client(self.auth)
         kwargs = {"Bucket": bucket, "Prefix": prefix}
         keys = []
         while True:
-            objs = s3_client.client.list_objects_v2(**kwargs)
+            objs = list_objects(self.auth, **kwargs)
             keys.extend([obj["Key"] for obj in objs["Contents"]])
             if "NextContinuationToken" in objs:
                 kwargs["ContinuationToken"] = objs["NextContinuationToken"]
             else:
                 break
-        s3_client.par_s3_download(bucket, keys, local_path)
+        par_s3_download(self.auth, bucket, keys, local_path)
         os.remove(os.path.join(local_path, "complete.json"))
         return [os.path.join(local_path, p) for p in sorted(os.listdir(local_path))]

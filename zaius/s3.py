@@ -47,3 +47,11 @@ def upload_to_s3(auth_struct, local_path, bucket, key):
     """
     client = init_s3_client(auth_struct)
     client.upload_file(local_path, bucket, key)
+
+
+def list_objects(auth_struct, s3_url):
+    """
+    lists objects found at an s3_url
+    """
+    client = init_s3_client(auth_struct)
+    return client.list_objects_v2(s3_url)
