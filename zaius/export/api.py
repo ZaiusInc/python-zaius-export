@@ -12,11 +12,8 @@ import os
 import gzip
 import csv
 import json
-from multiprocessing import Pool, cpu_count
-from functools import partial
 
 import requests
-import boto3
 import zaius.auth as auth
 from zaius.s3 import list_objects, par_s3_download
 
@@ -137,10 +134,11 @@ class API:
         bucket = path_parts.group(1)
         prefix = path_parts.group(2)
 
-        kwargs = {"Bucket": bucket, "Prefix": prefix}
+        kwargs = {"bucket": bucket, "prefix": prefix}
         keys = []
         while True:
             objs = list_objects(self.auth, **kwargs)
+            print(f"Objects: {objs}")
             keys.extend([obj["Key"] for obj in objs["Contents"]])
             if "NextContinuationToken" in objs:
                 kwargs["ContinuationToken"] = objs["NextContinuationToken"]
