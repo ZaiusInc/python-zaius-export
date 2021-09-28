@@ -138,7 +138,6 @@ class API:
         keys = []
         while True:
             objs = list_objects(self.auth, **kwargs)
-            print(f"Objects: {objs}")
             keys.extend([obj["Key"] for obj in objs["Contents"]])
             if "NextContinuationToken" in objs:
                 kwargs["ContinuationToken"] = objs["NextContinuationToken"]
