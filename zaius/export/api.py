@@ -12,12 +12,10 @@ import os
 import gzip
 import csv
 import json
-from multiprocessing import Pool, cpu_count
-from functools import partial
 
 import requests
-import boto3
 import zaius.auth as auth
+from zaius.s3 import list_objects, par_s3_download
 
 from .parser import QUERY_PARSER
 
@@ -136,15 +134,10 @@ class API:
         bucket = path_parts.group(1)
         prefix = path_parts.group(2)
 
-        s3_client = boto3.client(
-            "s3",
-            aws_access_key_id=self.auth["aws_access_key_id"],
-            aws_secret_access_key=self.auth["aws_secret_access_key"],
-        )
-        kwargs = {"Bucket": bucket, "Prefix": prefix}
+        kwargs = {"bucket": bucket, "prefix": prefix}
         keys = []
         while True:
-            objs = s3_client.list_objects_v2(**kwargs)
+            objs = list_objects(self.auth, **kwargs)
             keys.extend([obj["Key"] for obj in objs["Contents"]])
             if "NextContinuationToken" in objs:
                 kwargs["ContinuationToken"] = objs["NextContinuationToken"]
@@ -153,35 +146,3 @@ class API:
         par_s3_download(self.auth, bucket, keys, local_path)
         os.remove(os.path.join(local_path, "complete.json"))
         return [os.path.join(local_path, p) for p in sorted(os.listdir(local_path))]
-
-    
-def download_from_s3(bucket, local_path, key):
-    """
-    downloads a file from s3
-    """
-    _, fname = os.path.split(key)
-    output = os.path.join(local_path, fname)
-    s3_client.download_file(bucket, key, output)
-
-    
-def init_s3_client(auth):
-    """
-    initializes a s3 client for multiprocessing workers
-    """
-    global s3_client
-    s3_client = boto3.client("s3",
-                             aws_access_key_id=auth["aws_access_key_id"],
-                             aws_secret_access_key=auth["aws_secret_access_key"]
-                             )
-
-    
-def par_s3_download(auth, bucket, keys, local_path):
-    """
-    Download a list of files living under s3:<bucket>/<keys>
-    into a local folder.
-    """
-    f = partial(download_from_s3, bucket, local_path)
-    cores = cpu_count()
-    
-    with Pool(cores, initializer=init_s3_client, initargs=(auth,)) as p:
-        p.map(f, keys)
